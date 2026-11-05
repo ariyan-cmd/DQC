@@ -1,0 +1,25 @@
+[project]
+name = "dsc"
+version = "0.1.0"
+description = "Dataset Readiness Checker for YOLO-format image datasets"
+requires-python = ">=3.13"
+dependencies = ["typer>=0.27.3"]
+
+[project.scripts]
+dsc = "dsc.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=9.2.0", "ruff>=0.17.3"]
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
