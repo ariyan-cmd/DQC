@@ -1,49 +1,26 @@
-# Dataset Readiness Checker (`dsc`)
+# Roadmap
 
-Local-first Python CLI that scans a YOLO-format image dataset and writes an explainable
-readiness `report.json`; a static React viewer displays it. Read PRD.md and ROADMAP.md first.
-The owner is a student learning as they build: explain new concepts in 1-2 lines, keep diffs small.
+Rule: one slice per branch. A slice is done only when tests and lint pass, the diff is
+understood, and DEVLOG.md has an entry. Cut line if time runs short: in-box blur, then the
+histogram, then the tiny-resolution check. Never cut label checks, the explainable breakdown,
+or the live sample report.
 
-## Stack
-- engine/: Python 3.13, Typer, Pillow, opencv-python-headless, NumPy, PyYAML, Pydantic v2, uv, pytest, ruff
-- viewer/: Vite, React, TypeScript, Tailwind, Recharts, Zod, Vitest
-- No backend, database, or auth. Hosting: GitHub Pages. CI: GitHub Actions.
+- [ ] **0. Scaffold** `chore/scaffold` (1-2h): repo layout, CLAUDE.md, DEVLOG.md, .gitignore, uv + Vite setup, CI running ruff + pytest
+- [ ] **1. Loader + skeleton CLI** `feat/loader` (3-4h): fixture generator, Pydantic models, streaming loader for all 3 layouts, safe data.yaml, path containment, minimal report.json
+- [ ] **2. Image checks** `feat/image-checks` (2-3h): corrupt files, tiny resolution, exact duplicates (SHA-256), decompression bombs
+- [ ] **3. Label checks** `feat/label-checks` (3h): missing/empty labels, out-of-bounds, zero-size boxes, invalid class IDs
+- [ ] **4. Small-object stats** `feat/small-objects` (3-4h): tiny-box ratio, size histogram, in-box blur (warning only)
+- [ ] **5. Scoring + final report** `feat/scoring` (2-3h): four sub-scores, weighted overall, reasons, capped issues, generated JSON schema
+  - Milestone: CLI works end to end
+- [ ] **6. Viewer core** `feat/viewer-core` (3-4h): Vite/React shell, sample report, drag-and-drop, Zod validation, score and section cards
+- [ ] **7. Viewer details** `feat/viewer-issues` (2-3h): filterable issue table, histogram, friendly errors, plain-text rendering test
+  - Milestone: full product works locally
+- [ ] **8. Ship** `feat/deploy` (3-4h): GitHub Pages deploy (set Vite base path), README with Roboflow-vs-COCO comparison, 10k-image timing test
+  - Milestone: MVP done per PRD
 
-## Structure
-- engine/src/dsc/: cli.py, loader.py, models.py, scoring.py, report.py, checks/
-- engine/tests/: pytest + make_fixture.py (tiny dataset with planted problems)
-- viewer/src/: App.tsx, schema.ts, lib/, components/
-- schema/report.schema.json: generated from Pydantic; the engine/viewer contract
-- Supported layouts: images/<split> + labels/<split>; <split>/images + <split>/labels; flat
-- DEVLOG.md: one entry per finished slice
-
-## Commands
-- Engine (cd engine): `uv sync` | `uv run dsc check <dataset> -o report.json`
-- Test: `uv run pytest` | Lint: `uv run ruff check . && uv run ruff format --check .`
-- Build: `uv build`
-- Viewer (cd viewer): `npm install` | `npm run dev` | `npm test` | `npm run lint` | `npm run build`
-
-## Code style
-- Python: type hints everywhere, pathlib (never string paths), small functions, ruff-formatted
-- TypeScript: strict mode, no `any`, function components
-- Every check implements the Check protocol (check_sample, finalize) and has a pytest test
-- Comments explain why, not what
-
-## Git workflow
-- One ROADMAP slice at a time on `feat/<name>`; never commit directly to main
-- Conventional Commits: `feat(engine): ...`, `fix(viewer): ...`, `test:`, `docs:`, `chore:`
-- Before finishing a slice: tests and lint pass, then append a DEVLOG.md entry
-  (date, what, why, what was learned, tests, next)
-- Explain the diff to the owner before merging; no features outside the current slice
-- Ask before adding any dependency
-
-## Secrets and security
-- Never commit secrets; keep .env in .gitignore; no tokens, passwords or absolute paths in
-  code, logs, reports or DEVLOG
-- Dataset access is READ-ONLY: never modify or delete user files
-- Resolve paths and refuse to leave the dataset root (watch symlinks)
-- Parse YAML with yaml.safe_load only
-- Keep Pillow decompression-bomb protection on; a bad file becomes an issue, never a crash
-- report.json stores relative, forward-slash paths only
-- Viewer treats report.json as untrusted: validate with Zod, render values as plain text,
-  never use dangerouslySetInnerHTML
+## Risks to watch
+- Dataset format mismatch (check `data.yaml` and label files first)
+- In-box blur noisy on tiny boxes
+- Score weights are arbitrary until tuned on real runs
+- Windows path handling (use pathlib, forward slashes in report)
+- Code the owner can't explain: do not merge it
