@@ -2,6 +2,10 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+import yaml
+
+from dsc.models import Issue, Severity
+
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
@@ -64,6 +68,40 @@ def find_splits(root: Path) -> list[Split]:
         reason = "matches more than one layout" if matches else "is not a supported layout"
         raise LayoutError(f"dataset {reason}; expected images/+labels/ or <split>/images+labels")
     return matches[0]
+
+
+def _yaml_issue(kind: str, severity: Severity, detail: str) -> Issue:
+    return Issue(type=kind, severity=severity, section="Labels", file="data.yaml", detail=detail)
+
+
+def _class_names(names: object) -> list[str] | None:
+    """YOLO writes names as a list, or as a {0: 'cat', 1: 'dog'} mapping."""
+    if isinstance(names, list):
+        return [str(n) for n in names]
+    if isinstance(names, dict) and all(isinstance(k, int) for k in names):
+        return [str(names[k]) for k in sorted(names)]
+    return None
+
+
+def read_classes(root: Path, issues: list[Issue]) -> list[str]:
+    """Class names from data.yaml; problems become issues, never crashes."""
+    path = root / "data.yaml"
+    if not path.is_file():
+        issues.append(_yaml_issue("data_yaml_missing", "info", "data.yaml not found"))
+        return []
+    try:
+        # safe_load only builds plain data; yaml.load could run code from the file.
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (yaml.YAMLError, OSError, UnicodeDecodeError):
+        issues.append(
+            _yaml_issue("data_yaml_unreadable", "warning", "data.yaml could not be parsed")
+        )
+        return []
+    classes = _class_names(data.get("names") if isinstance(data, dict) else None)
+    if classes is None:
+        issues.append(_yaml_issue("data_yaml_no_names", "warning", "data.yaml has no usable names"))
+        return []
+    return classes
 
 
 def iter_samples(splits: list[Split]) -> Iterator[Sample]:

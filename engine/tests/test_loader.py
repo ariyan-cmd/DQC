@@ -4,7 +4,8 @@ from pathlib import Path
 import pytest
 from make_fixture import LAYOUTS, SPLITS, make_dataset
 
-from dsc.loader import LayoutError, find_splits, iter_samples, resolve_root
+from dsc.loader import LayoutError, find_splits, iter_samples, read_classes, resolve_root
+from dsc.models import Issue
 
 
 @pytest.mark.parametrize("layout", LAYOUTS)
@@ -50,6 +51,43 @@ def test_images_mixing_files_and_split_folders_is_an_error(tmp_path: Path) -> No
     (tmp_path / "images" / "stray.png").write_bytes(b"")
     with pytest.raises(LayoutError, match="mixes"):
         find_splits(resolve_root(tmp_path))
+
+
+def _classes(tmp_path: Path, yaml_text: str | None) -> tuple[list[str], list[Issue]]:
+    root = resolve_root(make_dataset(tmp_path, "flat", data_yaml=yaml_text))
+    issues: list[Issue] = []
+    return read_classes(root, issues), issues
+
+
+def test_classes_from_list(tmp_path: Path) -> None:
+    assert _classes(tmp_path, "names: [cat, dog]\n") == (["cat", "dog"], [])
+
+
+def test_classes_from_numbered_mapping(tmp_path: Path) -> None:
+    assert _classes(tmp_path, "names:\n  1: dog\n  0: cat\n") == (["cat", "dog"], [])
+
+
+def test_missing_data_yaml_is_an_info_issue(tmp_path: Path) -> None:
+    classes, issues = _classes(tmp_path, None)
+    assert classes == []
+    assert [(i.type, i.severity) for i in issues] == [("data_yaml_missing", "info")]
+
+
+@pytest.mark.parametrize("text", ["names: [", "just a string", "names: 5"])
+def test_bad_data_yaml_is_a_warning(tmp_path: Path, text: str) -> None:
+    classes, issues = _classes(tmp_path, text)
+    assert classes == []
+    assert [i.severity for i in issues] == ["warning"]
+
+
+def test_yaml_cannot_run_code(tmp_path: Path) -> None:
+    marker = tmp_path / "pwned.txt"
+    path_tag = "!!python/object/apply:pathlib.Path"
+    evil = f'names: {path_tag}.touch [{path_tag} ["{marker.as_posix()}"]]\n'
+    classes, issues = _classes(tmp_path, evil)
+    assert classes == []
+    assert issues[0].type == "data_yaml_unreadable"
+    assert not marker.exists()
 
 
 def test_missing_folder_is_an_error(tmp_path: Path) -> None:
