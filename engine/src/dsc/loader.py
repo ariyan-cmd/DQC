@@ -89,6 +89,9 @@ def read_classes(root: Path, issues: list[Issue]) -> list[str]:
     if not path.is_file():
         issues.append(_yaml_issue("data_yaml_missing", "info", "data.yaml not found"))
         return []
+    if not _inside(root, path):
+        issues.append(_outside_issue(root, path))
+        return []
     try:
         # safe_load only builds plain data; yaml.load could run code from the file.
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
@@ -104,11 +107,44 @@ def read_classes(root: Path, issues: list[Issue]) -> list[str]:
     return classes
 
 
-def iter_samples(splits: list[Split]) -> Iterator[Sample]:
+def _inside(root: Path, path: Path) -> bool:
+    # resolve() follows symlinks, so a link pointing out of the dataset is caught here.
+    return path.resolve().is_relative_to(root)
+
+
+def relpath(root: Path, path: Path) -> str:
+    """Report paths are relative to the dataset root and always use forward slashes."""
+    return path.relative_to(root).as_posix()
+
+
+def _outside_issue(root: Path, path: Path) -> Issue:
+    return Issue(
+        type="path_outside_root",
+        severity="error",
+        section="Files",
+        file=relpath(root, path),
+        detail="path resolves outside the dataset folder and was skipped",
+    )
+
+
+def iter_samples(root: Path, splits: list[Split], issues: list[Issue]) -> Iterator[Sample]:
     """Yield one image at a time so big datasets never sit in memory."""
     for split in splits:
+        if not _inside(root, split.images_dir):
+            issues.append(_outside_issue(root, split.images_dir))
+            continue
+        labels_dir: Path | None = split.labels_dir
+        if labels_dir is not None and not _inside(root, labels_dir):
+            issues.append(_outside_issue(root, labels_dir))
+            labels_dir = None
         for image in sorted(split.images_dir.iterdir()):
             if image.suffix.lower() not in IMAGE_EXTS or not image.is_file():
                 continue
-            label = split.labels_dir / f"{image.stem}.txt"
-            yield Sample(image, label if label.is_file() else None, split.name)
+            if not _inside(root, image):
+                issues.append(_outside_issue(root, image))
+                continue
+            label = labels_dir / f"{image.stem}.txt" if labels_dir else None
+            if label is not None and label.is_file() and not _inside(root, label):
+                issues.append(_outside_issue(root, label))
+                label = None
+            yield Sample(image, label if label and label.is_file() else None, split.name)
