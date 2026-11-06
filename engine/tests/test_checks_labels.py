@@ -45,14 +45,14 @@ def test_non_text_file_raises(tmp_path: Path) -> None:
         list(parse_label_file(path))
 
 
-def run(tmp_path: Path, text: str | None) -> list[Issue]:
+def run(tmp_path: Path, text: str | None, classes: int = 2) -> list[Issue]:
     """Check one image `img.png` whose label is `lbl.txt` containing `text` (None = no label)."""
     root = resolve_root(tmp_path)
     label = None
     if text is not None:
         label = root / "lbl.txt"
         label.write_text(text, encoding="utf-8")
-    return LabelCheck(root).check_sample(Sample(root / "img.png", label, ""))
+    return LabelCheck(root, classes).check_sample(Sample(root / "img.png", label, ""))
 
 
 def kinds(issues: list[Issue]) -> list[tuple[str, str, str]]:
@@ -72,8 +72,45 @@ def test_valid_label_has_no_issues(tmp_path: Path) -> None:
     assert run(tmp_path, "0 0.5 0.5 0.2 0.2\n1 0.3 0.3 0.1 0.1\n") == []
 
 
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [
+        ("0 0.5 0.5 0.2", "malformed_label_line"),
+        ("2 0.5 0.5 0.2 0.2", "invalid_class_id"),  # only classes 0 and 1 exist
+        ("-1 0.5 0.5 0.2 0.2", "invalid_class_id"),
+        ("0.5 0.5 0.5 0.2 0.2", "invalid_class_id"),
+        ("0 0.5 0.5 0 0.2", "zero_size_box"),
+        ("0 0.5 0.5 -0.1 0.2", "zero_size_box"),
+        ("0 0.95 0.5 0.2 0.2", "box_out_of_bounds"),  # right edge at 1.05
+        ("0 0.5 0.02 0.2 0.1", "box_out_of_bounds"),  # top edge at -0.03
+        ("0 1.5 0.5 0.1 0.1", "box_out_of_bounds"),
+    ],
+)
+def test_each_box_problem_is_reported(tmp_path: Path, line: str, expected: str) -> None:
+    assert kinds(run(tmp_path, line + "\n")) == [(expected, "error", "lbl.txt")]
+
+
+def test_box_touching_the_edges_is_fine(tmp_path: Path) -> None:
+    assert run(tmp_path, "0 0.5 0.5 1 1\n0 0.1 0.1 0.2 0.2000000001\n") == []
+
+
+def test_problems_are_grouped_per_type_with_count_and_first_line(tmp_path: Path) -> None:
+    issues = run(tmp_path, "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0 0\nbad\n0 0.5 0.5 0 0\n")
+    assert [(i.type, i.detail.split(": ")[1]) for i in issues] == [
+        ("zero_size_box", "2 line(s), first at line 2"),
+        ("malformed_label_line", "1 line(s), first at line 3"),
+    ]
+
+
+def test_without_class_list_only_the_id_shape_is_checked(tmp_path: Path) -> None:
+    assert run(tmp_path, "99 0.5 0.5 0.2 0.2\n", classes=0) == []
+    assert kinds(run(tmp_path, "-1 0.5 0.5 0.2 0.2\n", classes=0)) == [
+        ("invalid_class_id", "error", "lbl.txt")
+    ]
+
+
 def test_unreadable_label_is_an_error_not_a_crash(tmp_path: Path) -> None:
     root = resolve_root(tmp_path)
     (root / "lbl.txt").write_bytes(b"\xff\xfe\x00\x80")
-    issues = LabelCheck(root).check_sample(Sample(root / "img.png", root / "lbl.txt", ""))
+    issues = LabelCheck(root, 2).check_sample(Sample(root / "img.png", root / "lbl.txt", ""))
     assert kinds(issues) == [("malformed_label_line", "error", "lbl.txt")]

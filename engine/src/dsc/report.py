@@ -14,7 +14,7 @@ def build_report(dataset: Path) -> Report:
     splits = find_splits(root)
     issues: list[Issue] = []
     classes = read_classes(root, issues)
-    checks: list[Check] = [ImageCheck(root), DuplicateCheck(root), LabelCheck(root)]
+    checks: list[Check] = [ImageCheck(root), DuplicateCheck(root), LabelCheck(root, len(classes))]
     num_images = num_labels = 0
     for sample in iter_samples(root, splits, issues):
         num_images += 1

@@ -41,11 +41,35 @@ def parse_label_file(path: Path) -> Iterator[tuple[int, Box | None]]:
                 yield number, _parse_line(parts)
 
 
-class LabelCheck:
-    """Flags missing, empty and unreadable label files (box checks are added below)."""
+BOUNDS_TOLERANCE = 1e-6  # exporters round coordinates, so allow a hair over the edge
+DESCRIPTIONS = {
+    "malformed_label_line": "not 'class x y w h' numbers",
+    "invalid_class_id": "class id is not a whole number within the class list",
+    "zero_size_box": "box width or height is 0 or negative",
+    "box_out_of_bounds": "box extends outside the image",
+}
 
-    def __init__(self, root: Path) -> None:
+
+def _out_of_bounds(box: Box) -> bool:
+    low, high = -BOUNDS_TOLERANCE, 1 + BOUNDS_TOLERANCE
+    return (
+        box.x - box.w / 2 < low
+        or box.x + box.w / 2 > high
+        or box.y - box.h / 2 < low
+        or box.y + box.h / 2 > high
+    )
+
+
+class LabelCheck:
+    """Flags missing, empty and unreadable label files, and bad lines and boxes inside them."""
+
+    def __init__(self, root: Path, num_classes: int) -> None:
         self.root = root
+        self.num_classes = num_classes
+
+    def _bad_class(self, cls: float) -> bool:
+        # num_classes is 0 when data.yaml gave no names; then only the id's shape is checked.
+        return not cls.is_integer() or cls < 0 or (0 < self.num_classes <= cls)
 
     def _issue(self, path: Path, kind: str, severity: Severity, detail: str) -> Issue:
         return Issue(
@@ -67,7 +91,27 @@ class LabelCheck:
             return [self._issue(sample.label, "malformed_label_line", "error", detail)]
         if not lines:
             return [self._issue(sample.label, "empty_label", "info", "label file has no boxes")]
-        return []
+        # One issue per problem type per file keeps a badly broken file from flooding the report.
+        found: dict[str, list[int]] = {}
+        for number, box in lines:
+            if box is None:
+                found.setdefault("malformed_label_line", []).append(number)
+                continue
+            if self._bad_class(box.cls):
+                found.setdefault("invalid_class_id", []).append(number)
+            if box.w <= 0 or box.h <= 0:
+                found.setdefault("zero_size_box", []).append(number)
+            elif _out_of_bounds(box):
+                found.setdefault("box_out_of_bounds", []).append(number)
+        return [
+            self._issue(
+                sample.label,
+                kind,
+                "error",
+                f"{DESCRIPTIONS[kind]}: {len(nums)} line(s), first at line {nums[0]}",
+            )
+            for kind, nums in found.items()
+        ]
 
     def finalize(self) -> list[Issue]:
         return []
