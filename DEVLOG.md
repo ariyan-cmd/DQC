@@ -56,3 +56,19 @@ One entry per finished slice, newest last.
   large dataset or tried on real broken files yet.
 - **Next:** Slice 3, `feat/label-checks`: missing/empty labels, out-of-bounds and zero-size
   boxes, invalid class IDs.
+
+### Slice 3: Label checks (2026-11-06)
+- **What:** `LabelCheck` reports `missing_label` (warning), `empty_label` (info) and, as errors,
+  `malformed_label_line`, `invalid_class_id`, `box_out_of_bounds` and `zero_size_box`. A shared
+  `parse_label_file` reads YOLO lines. One issue per problem type per file, with count and first line.
+- **Why:** Broken labels silently ruin training; these are the cheapest problems to catch first.
+- **What I learned:** YOLO boxes are centre x/y plus width/height as 0-1 fractions, so edges are
+  centre minus or plus half the size. `nan` parses as a float but defeats every comparison, so
+  non-finite values are rejected. Parsing the class as a float keeps a bad id like 1.5 reportable.
+  Adding a check changes what a clean scan returns, so older tests had to be updated.
+- **Tests:** 62 passed, 4 symlink tests skipped locally (run in CI). ruff and `uv build` clean.
+  A planted-problems test finds exactly the six expected label issues. Bounds rule and 1e-6
+  tolerance not yet tried on a real exported dataset.
+- **Limits:** Label files with no image are not reported. Segmentation (polygon) lines count as
+  malformed.
+- **Next:** Slice 4, `feat/small-objects`: tiny-box ratio, size histogram, in-box blur.
