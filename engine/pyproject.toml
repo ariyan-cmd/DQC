@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Dataset Readiness Checker for YOLO-format image datasets"
 requires-python = ">=3.13"
 dependencies = [
+    "pillow==13.0.0",
     "pydantic==2.14.3",
     "pyyaml==6.0.3",
     "typer>=0.27.3",
@@ -14,7 +15,6 @@ dsc = "dsc.cli:app"
 
 [dependency-groups]
 dev = [
-    "pillow==13.0.0",
     "pytest>=9.2.0",
     "ruff>=0.17.3",
 ]
