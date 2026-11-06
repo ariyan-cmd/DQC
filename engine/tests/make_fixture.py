@@ -31,6 +31,22 @@ def plant_image_problems(root: Path) -> None:
     (images / "dup.png").write_bytes(good)
 
 
+def plant_label_problems(root: Path) -> None:
+    """Add one image per label problem to a flat dataset (two classes, ids 0 and 1)."""
+    images, labels = root / "images", root / "labels"
+    cases = {
+        "empty": "",
+        "malformed": "0 0.5 0.5\n",
+        "badclass": "5 0.5 0.5 0.2 0.2\n",
+        "outside": "0 0.95 0.5 0.2 0.2\n",
+        "zero": "0 0.5 0.5 0 0.2\n",
+    }
+    for seed, (name, text) in enumerate(cases.items(), start=10):
+        # distinct colour per image so none of them is flagged as a duplicate
+        Image.new("RGB", (64, 64), (seed * 10, 50, 50)).save(images / f"{name}.png")
+        (labels / f"{name}.txt").write_text(text, encoding="utf-8")
+
+
 def make_dataset(root: Path, layout: str, data_yaml: str | None = DATA_YAML) -> Path:
     """Create a dataset in `root` using one of LAYOUTS and return `root`."""
     if layout == "images_labels":
