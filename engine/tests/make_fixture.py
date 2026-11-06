@@ -22,6 +22,15 @@ def _write_split(images_dir: Path, labels_dir: Path, seed: int = 0) -> None:
     (labels_dir / "a.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")
 
 
+def plant_image_problems(root: Path) -> None:
+    """Add one corrupt, one tiny and one duplicate image to a flat dataset."""
+    images = root / "images"
+    good = (images / "a.png").read_bytes()
+    (images / "corrupt.png").write_bytes(good[: len(good) // 2])
+    Image.new("RGB", (4, 4), (9, 9, 9)).save(images / "tiny.png")
+    (images / "dup.png").write_bytes(good)
+
+
 def make_dataset(root: Path, layout: str, data_yaml: str | None = DATA_YAML) -> Path:
     """Create a dataset in `root` using one of LAYOUTS and return `root`."""
     if layout == "images_labels":
