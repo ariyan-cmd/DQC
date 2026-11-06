@@ -34,7 +34,7 @@ class ImageCheck:
                     img.load()  # full decode: open() alone misses truncated files
         except (Image.DecompressionBombError, Image.DecompressionBombWarning):
             return [self._issue(sample, "image_too_large", "error", "too many pixels; skipped")]
-        except Exception:  # noqa: BLE001 - any decode failure is a bad file, never a crash
+        except Exception:  # any decode failure is a bad file, never a crash
             return [self._issue(sample, "corrupt_image", "error", "image could not be decoded")]
         if min(width, height) < MIN_SIDE:
             detail = f"{width}x{height} px is below the {MIN_SIDE} px minimum"
