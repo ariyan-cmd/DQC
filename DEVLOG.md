@@ -40,3 +40,19 @@ One entry per finished slice, newest last.
   in CI on Linux). ruff and `uv build` clean. Not tried on a real Roboflow or COCO export yet.
 - **Next:** Slice 2, `feat/image-checks`: corrupt files, tiny resolution, exact duplicates,
   decompression bombs.
+
+### Slice 2: Image checks (2026-11-06)
+- **What:** Added the Check protocol and two checks. `ImageCheck` flags corrupt files, files over
+  Pillow's pixel limit (decompression bombs) and images under 32 px. `DuplicateCheck` flags
+  byte-identical images by SHA-256. Pillow is now a runtime dependency.
+- **Why:** Broken, oversized, tiny and repeated images waste training runs and are cheap to find
+  before training.
+- **What I learned:** `Image.open()` reads only the header, so a truncated file needs a full
+  `load()` to fail. Pillow only warns between 1x and 2x its pixel limit, so the warning is turned
+  into an error. Hashing in 1 MiB chunks keeps memory flat. A protocol lets checks plug in with
+  one line in `build_report`. Fixture images must differ per split or they count as duplicates.
+- **Tests:** 36 passed, 4 symlink tests skipped locally (run in CI). ruff and `uv build` clean.
+  A planted-problems test finds exactly the corrupt, tiny and duplicate image. Not timed on a
+  large dataset or tried on real broken files yet.
+- **Next:** Slice 3, `feat/label-checks`: missing/empty labels, out-of-bounds and zero-size
+  boxes, invalid class IDs.
