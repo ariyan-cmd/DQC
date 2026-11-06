@@ -19,7 +19,8 @@ def test_check_writes_valid_report(tmp_path: Path, layout: str) -> None:
     assert report.dataset.name == "ds"
     assert report.dataset.classes == ["cat", "dog"]
     assert report.dataset.num_images == (2 if layout == "flat" else 4)
-    assert report.issues == []
+    # image "b" has no label in the fixture; nothing else is wrong
+    assert {i.type for i in report.issues} == {"missing_label"}
 
 
 def test_report_has_no_absolute_paths(tmp_path: Path) -> None:

@@ -3,6 +3,7 @@ from pathlib import Path
 from dsc.checks.base import Check
 from dsc.checks.duplicates import DuplicateCheck
 from dsc.checks.image import ImageCheck
+from dsc.checks.labels import LabelCheck
 from dsc.loader import find_splits, iter_samples, read_classes, resolve_root
 from dsc.models import DatasetInfo, Issue, Report, Score
 
@@ -13,7 +14,7 @@ def build_report(dataset: Path) -> Report:
     splits = find_splits(root)
     issues: list[Issue] = []
     classes = read_classes(root, issues)
-    checks: list[Check] = [ImageCheck(root), DuplicateCheck(root)]
+    checks: list[Check] = [ImageCheck(root), DuplicateCheck(root), LabelCheck(root)]
     num_images = num_labels = 0
     for sample in iter_samples(root, splits, issues):
         num_images += 1
