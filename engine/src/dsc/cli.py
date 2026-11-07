@@ -30,4 +30,7 @@ def check(
         raise typer.Exit(code=2) from err
     write_report(report, output)
     info = report.dataset
-    typer.echo(f"{info.num_images} images, {info.num_labels} labels -> {output.name}")
+    typer.echo(
+        f"{info.num_images} images, {info.num_labels} labels, "
+        f"score {report.score.overall:g}/100 -> {output.name}"
+    )

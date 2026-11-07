@@ -91,3 +91,23 @@ One entry per finished slice, newest last.
   decoded a third time for blur; speed is untested until the 10k-image timing in Slice 8.
 - **Next:** Slice 5, `feat/scoring`: four sub-scores, weighted overall, reasons, capped issues,
   generated JSON schema.
+
+### Slice 5: Scoring + final report (2026-11-07)
+- **What:** `scoring.py` scores four sections (Files, Labels, Duplicates, Small-object quality) from
+  0 to 100 with plain-English reasons, plus a weighted overall score (0.25 / 0.35 / 0.15 / 0.25).
+  Issues are capped at 100 per type; `issue_counts` keeps the true counts. `schema/report.schema.json`
+  is generated from the Pydantic models with `uv run python -m dsc.schema`. The CLI prints the
+  overall score. Milestone: the CLI works end to end.
+- **Why:** The PRD wants a score a stranger can understand and trace back to specific problems.
+- **What I learned:** An issue-based section score is `100 x (1 - weighted issues / images)`,
+  clamped at 0. Scoring must run before the cap, or trimming the list would change the score.
+  Weights come from severity with a few overrides, and unknown types fall back to severity. A test
+  that regenerates the schema and compares it to the committed file stops the engine and viewer
+  contract drifting.
+- **Tests:** 91 passed, 4 symlink tests skipped locally (run in CI). ruff and `uv build` clean.
+  End-to-end tests check exact section scores, the overall score and the cap.
+- **Limits:** Weights, thresholds and the cap are placeholders, not tuned on real data. A dataset
+  of genuinely tiny objects scores 0 in Small-object quality. All issues are held in memory until
+  the end of the scan. Score is not validated against model accuracy.
+- **Next:** Slice 6, `feat/viewer-core`: Vite/React shell, sample report, drag-and-drop, Zod
+  validation, score and section cards.
