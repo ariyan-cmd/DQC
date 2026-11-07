@@ -45,5 +45,6 @@ class Report(BaseModel):
     dataset: DatasetInfo
     score: Score
     sections: list[Section] = Field(default_factory=list)
-    issues: list[Issue] = Field(default_factory=list)
+    issues: list[Issue] = Field(default_factory=list)  # capped per type
+    issue_counts: dict[str, int] = Field(default_factory=dict)  # true count per type, pre-cap
     stats: Stats = Field(default_factory=Stats)
