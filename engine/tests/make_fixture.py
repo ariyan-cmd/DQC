@@ -55,6 +55,17 @@ def plant_label_problems(root: Path) -> None:
         (labels / f"{name}.txt").write_text(text, encoding="utf-8")
 
 
+def plant_small_object_problems(root: Path) -> None:
+    """Add a 5 px box on a big image, a full-image box on a flat image, and a sharp 20 px box."""
+    images, labels = root / "images", root / "labels"
+    noise_image(20, size=200).save(images / "small.png")
+    (labels / "small.txt").write_text("0 0.5 0.5 0.025 0.025\n", encoding="utf-8")  # 5 px
+    Image.new("RGB", (100, 100), (120, 120, 120)).save(images / "soft.png")
+    (labels / "soft.txt").write_text("0 0.5 0.5 1 1\n", encoding="utf-8")  # flat = blurry
+    noise_image(21, size=100).save(images / "mid.png")
+    (labels / "mid.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")  # 20 px
+
+
 def make_dataset(root: Path, layout: str, data_yaml: str | None = DATA_YAML) -> Path:
     """Create a dataset in `root` using one of LAYOUTS and return `root`."""
     if layout == "images_labels":
