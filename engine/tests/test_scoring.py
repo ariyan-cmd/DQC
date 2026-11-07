@@ -1,5 +1,5 @@
 from dsc.models import Issue, Severity, Stats
-from dsc.scoring import SECTION_WEIGHTS, overall_score, score_sections
+from dsc.scoring import SECTION_WEIGHTS, cap_issues, overall_score, score_sections
 
 GOOD_STATS = Stats(box_size_histogram={"96+": 10}, tiny_box_ratio=0.0)
 
@@ -80,6 +80,18 @@ def test_empty_dataset_scores_zero_with_a_reason() -> None:
     sections = score_sections([], Stats(), 0)
     assert all((s.score, s.reason) == (0, "no images found") for s in sections)
     assert overall_score(sections).overall == 0
+
+
+def test_cap_keeps_the_first_100_per_type_and_the_true_counts() -> None:
+    many = [
+        Issue(type="corrupt_image", severity="error", section="Files", file=f"{n}.png", detail="d")
+        for n in range(150)
+    ]
+    few = [issue("tiny_resolution", "Files", "warning")] * 3
+    kept, counts = cap_issues(many[:50] + few + many[50:])
+    assert counts == {"corrupt_image": 150, "tiny_resolution": 3}
+    assert [i.file for i in kept if i.type == "corrupt_image"] == [f"{n}.png" for n in range(100)]
+    assert sum(i.type == "tiny_resolution" for i in kept) == 3
 
 
 def test_overall_is_the_weighted_average_and_lists_its_weights() -> None:

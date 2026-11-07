@@ -7,6 +7,8 @@ from dsc.models import Issue, Score, Section, Stats
 # Placeholder weights: arbitrary until tuned on real datasets.
 SECTION_WEIGHTS = {"Files": 0.25, "Labels": 0.35, "Duplicates": 0.15, "Small-object quality": 0.25}
 
+MAX_ISSUES_PER_TYPE = 100  # keeps report.json small; the true counts are stored separately
+
 # How much one issue counts against its section. By severity, with a few exceptions.
 SEVERITY_WEIGHT = {"error": 1.0, "warning": 0.5, "info": 0.0}
 WEIGHT_OVERRIDES = {
@@ -84,6 +86,17 @@ def score_sections(issues: list[Issue], stats: Stats, num_images: int) -> list[S
         else:
             sections.append(_issue_based(name, issues, num_images))
     return sections
+
+
+def cap_issues(issues: list[Issue]) -> tuple[list[Issue], dict[str, int]]:
+    """Keep the first MAX_ISSUES_PER_TYPE of each type; also return the true count per type."""
+    shown: Counter[str] = Counter()
+    kept = []
+    for i in issues:
+        shown[i.type] += 1
+        if shown[i.type] <= MAX_ISSUES_PER_TYPE:
+            kept.append(i)
+    return kept, dict(shown)
 
 
 def overall_score(sections: list[Section]) -> Score:
