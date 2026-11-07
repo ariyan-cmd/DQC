@@ -6,11 +6,12 @@ from dsc.checks.image import ImageCheck
 from dsc.checks.labels import LabelCheck
 from dsc.checks.small_objects import SmallObjectCheck
 from dsc.loader import find_splits, iter_samples, read_classes, resolve_root
-from dsc.models import DatasetInfo, Issue, Report, Score
+from dsc.models import DatasetInfo, Issue, Report
+from dsc.scoring import cap_issues, overall_score, score_sections
 
 
 def build_report(dataset: Path) -> Report:
-    """Scan a dataset and describe it. Scoring and checks arrive in later slices."""
+    """Scan a dataset, run every check, and score the result."""
     root = resolve_root(dataset)
     splits = find_splits(root)
     issues: list[Issue] = []
@@ -30,6 +31,9 @@ def build_report(dataset: Path) -> Report:
             issues.extend(check.check_sample(sample))
     for check in checks:
         issues.extend(check.finalize())
+    stats = small_objects.stats()
+    sections = score_sections(issues, stats, num_images)  # scored before the issue cap
+    kept, issue_counts = cap_issues(issues)
     return Report(
         dataset=DatasetInfo(
             name=root.name,
@@ -38,10 +42,11 @@ def build_report(dataset: Path) -> Report:
             classes=classes,
             splits=[s.name for s in splits if s.name],
         ),
-        # Placeholder until Slice 5 adds real scoring.
-        score=Score(overall=0, weights={}),
-        issues=issues,
-        stats=small_objects.stats(),
+        score=overall_score(sections),
+        sections=sections,
+        issues=kept,
+        issue_counts=issue_counts,
+        stats=stats,
     )
 
 
