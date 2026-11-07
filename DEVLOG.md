@@ -72,3 +72,22 @@ One entry per finished slice, newest last.
 - **Limits:** Label files with no image are not reported. Segmentation (polygon) lines count as
   malformed.
 - **Next:** Slice 4, `feat/small-objects`: tiny-box ratio, size histogram, in-box blur.
+
+### Slice 4: Small-object stats (2026-11-07)
+- **What:** `SmallObjectCheck` fills `stats`: a box-size histogram (<8, 8-16, 16-32, 32-96, 96+ px),
+  `tiny_box_ratio` (boxes under 16 px) and `blur_summary`. Blur is the Laplacian variance of each
+  box crop (boxes 8 px or larger); an image whose median score is under 100 gets a
+  `blurry_objects` warning. NumPy added; OpenCV deliberately not (stack line in CLAUDE.md updated).
+- **Why:** Tiny and blurry objects are what hurts small-object detectors, and the PRD wants them
+  visible before training.
+- **What I learned:** Labels are fractions, so pixel size needs the image size (read from the
+  header only). Box size is the square root of its area. A flat area has Laplacian variance 0, so
+  low variance means blurry; crops under 8 px are too noisy to score. Solid-colour test images
+  count as blurry, so fixtures use seeded random noise. Stats live on the check object and
+  `build_report` reads them, so the Check protocol stays unchanged.
+- **Tests:** 74 passed, 4 symlink tests skipped locally (run in CI). ruff and `uv build` clean.
+  A planted test checks the exact histogram, ratio, blur summary and the single warning.
+- **Limits:** Thresholds (16 px, 100, 8 px) are placeholders not tuned on real data. Images are
+  decoded a third time for blur; speed is untested until the 10k-image timing in Slice 8.
+- **Next:** Slice 5, `feat/scoring`: four sub-scores, weighted overall, reasons, capped issues,
+  generated JSON schema.

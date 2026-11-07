@@ -5,7 +5,7 @@ readiness `report.json`; a static React viewer displays it. Read PRD.md and ROAD
 The owner is a student learning as they build: explain new concepts in 1-2 lines, keep diffs small.
 
 ## Stack
-- engine/: Python 3.13, Typer, Pillow, opencv-python-headless, NumPy, PyYAML, Pydantic v2, uv, pytest, ruff
+- engine/: Python 3.13, Typer, Pillow, NumPy (no OpenCV: blur is a few lines of NumPy), PyYAML, Pydantic v2, uv, pytest, ruff
 - viewer/: Vite, React, TypeScript, Tailwind, Recharts, Zod, Vitest
 - No backend, database, or auth. Hosting: GitHub Pages. CI: GitHub Actions.
 
