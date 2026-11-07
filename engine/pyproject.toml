@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Dataset Readiness Checker for YOLO-format image datasets"
 requires-python = ">=3.13"
 dependencies = [
+    "numpy==2.5.4",
     "pillow==13.0.0",
     "pydantic==2.14.3",
     "pyyaml==6.0.3",
