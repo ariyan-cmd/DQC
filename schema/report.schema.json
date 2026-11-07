@@ -1,0 +1,198 @@
+{
+  "$defs": {
+    "DatasetInfo": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "num_images": {
+          "title": "Num Images",
+          "type": "integer"
+        },
+        "num_labels": {
+          "title": "Num Labels",
+          "type": "integer"
+        },
+        "classes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Classes",
+          "type": "array"
+        },
+        "splits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Splits",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "num_images",
+        "num_labels",
+        "classes",
+        "splits"
+      ],
+      "title": "DatasetInfo",
+      "type": "object"
+    },
+    "Issue": {
+      "properties": {
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "severity": {
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ],
+          "title": "Severity",
+          "type": "string"
+        },
+        "section": {
+          "title": "Section",
+          "type": "string"
+        },
+        "file": {
+          "title": "File",
+          "type": "string"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "severity",
+        "section",
+        "file",
+        "detail"
+      ],
+      "title": "Issue",
+      "type": "object"
+    },
+    "Score": {
+      "properties": {
+        "overall": {
+          "title": "Overall",
+          "type": "number"
+        },
+        "weights": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Weights",
+          "type": "object"
+        }
+      },
+      "required": [
+        "overall",
+        "weights"
+      ],
+      "title": "Score",
+      "type": "object"
+    },
+    "Section": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "issue_count": {
+          "title": "Issue Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "score",
+        "reason",
+        "issue_count"
+      ],
+      "title": "Section",
+      "type": "object"
+    },
+    "Stats": {
+      "properties": {
+        "box_size_histogram": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Box Size Histogram",
+          "type": "object"
+        },
+        "tiny_box_ratio": {
+          "default": 0.0,
+          "title": "Tiny Box Ratio",
+          "type": "number"
+        },
+        "blur_summary": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Blur Summary",
+          "type": "object"
+        }
+      },
+      "title": "Stats",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "default": "1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "dataset": {
+      "$ref": "#/$defs/DatasetInfo"
+    },
+    "score": {
+      "$ref": "#/$defs/Score"
+    },
+    "sections": {
+      "items": {
+        "$ref": "#/$defs/Section"
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/Issue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "issue_counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Issue Counts",
+      "type": "object"
+    },
+    "stats": {
+      "$ref": "#/$defs/Stats"
+    }
+  },
+  "required": [
+    "dataset",
+    "score"
+  ],
+  "title": "Report",
+  "type": "object"
+}
