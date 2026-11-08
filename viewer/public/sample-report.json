@@ -1,0 +1,168 @@
+{
+  "schema_version": "1",
+  "dataset": {
+    "name": "sample-dataset",
+    "num_images": 13,
+    "num_labels": 9,
+    "classes": [
+      "cat",
+      "dog"
+    ],
+    "splits": []
+  },
+  "score": {
+    "overall": 63.1,
+    "weights": {
+      "Files": 0.25,
+      "Labels": 0.35,
+      "Duplicates": 0.15,
+      "Small-object quality": 0.25
+    }
+  },
+  "sections": [
+    {
+      "name": "Files",
+      "score": 88.5,
+      "reason": "corrupt images: 1; very small images: 1 (13 images)",
+      "issue_count": 2
+    },
+    {
+      "name": "Labels",
+      "score": 53.8,
+      "reason": "images without a label file: 4; label files with invalid class ids: 1; empty label files: 1; label files with malformed lines: 1; label files with boxes outside the image: 1; label files with zero-size boxes: 1 (13 images)",
+      "issue_count": 9
+    },
+    {
+      "name": "Duplicates",
+      "score": 92.3,
+      "reason": "duplicate images: 1 (13 images)",
+      "issue_count": 1
+    },
+    {
+      "name": "Small-object quality",
+      "score": 33.3,
+      "reason": "67% of 6 boxes are under 16 px; 20% of measured boxes look blurry (not scored)",
+      "issue_count": 1
+    }
+  ],
+  "issues": [
+    {
+      "type": "missing_label",
+      "severity": "warning",
+      "section": "Labels",
+      "file": "images/b.png",
+      "detail": "no label file"
+    },
+    {
+      "type": "invalid_class_id",
+      "severity": "error",
+      "section": "Labels",
+      "file": "labels/badclass.txt",
+      "detail": "class id is not a whole number within the class list: 1 line(s), first at line 1"
+    },
+    {
+      "type": "corrupt_image",
+      "severity": "error",
+      "section": "Files",
+      "file": "images/corrupt.png",
+      "detail": "image could not be decoded"
+    },
+    {
+      "type": "missing_label",
+      "severity": "warning",
+      "section": "Labels",
+      "file": "images/corrupt.png",
+      "detail": "no label file"
+    },
+    {
+      "type": "duplicate_image",
+      "severity": "warning",
+      "section": "Duplicates",
+      "file": "images/dup.png",
+      "detail": "byte-identical to images/a.png"
+    },
+    {
+      "type": "missing_label",
+      "severity": "warning",
+      "section": "Labels",
+      "file": "images/dup.png",
+      "detail": "no label file"
+    },
+    {
+      "type": "empty_label",
+      "severity": "info",
+      "section": "Labels",
+      "file": "labels/empty.txt",
+      "detail": "label file has no boxes"
+    },
+    {
+      "type": "malformed_label_line",
+      "severity": "error",
+      "section": "Labels",
+      "file": "labels/malformed.txt",
+      "detail": "not 'class x y w h' numbers: 1 line(s), first at line 1"
+    },
+    {
+      "type": "box_out_of_bounds",
+      "severity": "error",
+      "section": "Labels",
+      "file": "labels/outside.txt",
+      "detail": "box extends outside the image: 1 line(s), first at line 1"
+    },
+    {
+      "type": "blurry_objects",
+      "severity": "warning",
+      "section": "Small-object quality",
+      "file": "images/soft.png",
+      "detail": "median sharpness 0 over 1 box(es) is below 100"
+    },
+    {
+      "type": "tiny_resolution",
+      "severity": "warning",
+      "section": "Files",
+      "file": "images/tiny.png",
+      "detail": "4x4 px is below the 32 px minimum"
+    },
+    {
+      "type": "missing_label",
+      "severity": "warning",
+      "section": "Labels",
+      "file": "images/tiny.png",
+      "detail": "no label file"
+    },
+    {
+      "type": "zero_size_box",
+      "severity": "error",
+      "section": "Labels",
+      "file": "labels/zero.txt",
+      "detail": "box width or height is 0 or negative: 1 line(s), first at line 1"
+    }
+  ],
+  "issue_counts": {
+    "missing_label": 4,
+    "invalid_class_id": 1,
+    "corrupt_image": 1,
+    "duplicate_image": 1,
+    "empty_label": 1,
+    "malformed_label_line": 1,
+    "box_out_of_bounds": 1,
+    "blurry_objects": 1,
+    "tiny_resolution": 1,
+    "zero_size_box": 1
+  },
+  "stats": {
+    "box_size_histogram": {
+      "<8": 1,
+      "8-16": 3,
+      "16-32": 1,
+      "32-96": 0,
+      "96+": 1
+    },
+    "tiny_box_ratio": 0.6666666666666666,
+    "blur_summary": {
+      "boxes_measured": 5.0,
+      "median_sharpness": 47608.890625,
+      "blurry_ratio": 0.2
+    }
+  }
+}
