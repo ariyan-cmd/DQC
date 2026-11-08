@@ -150,3 +150,28 @@ One entry per finished slice, newest last.
   reader or a real large report. Histogram is plain bars, not Recharts (CLAUDE.md stack updated).
 - **Next:** Slice 8, `feat/deploy`: GitHub Pages deploy (Vite base path), README with the
   Roboflow-vs-COCO comparison, 10k-image timing test.
+
+### Slice 8: Ship (2026-11-08)
+- **What:** `deploy.yml` builds the viewer and publishes it to GitHub Pages on every push to main
+  (Vite `base` is `/DQC/`). A slow, opt-in 10k-image timing test. MIT license. A one-off
+  `scripts/coco_to_yolo.py`. A new `small_box_ratio` stat (share of boxes under 32 px, shown next to
+  the tiny share but never scored) carried through the models, schema, Zod and the viewer. The README
+  is filled in with a real cricket-ball vs COCO val2017 comparison and timings. Pages was enabled
+  with the Actions source.
+- **Why:** The PRD's success criteria: a live URL, a README a stranger can follow, a 10k-image timing
+  and a real comparison.
+- **What I learned:** A Pages site lives under `/<repo>/`, so Vite needs a base path or the page is
+  blank. A `slow` marker keeps long tests out of normal runs. The profiler showed the first COCO scan
+  was slow because Windows spends about 15 ms on each file's first open (20 images/s cold, 59 to 115
+  warm), so always check where time goes before optimising. On the cricket-ball set no box is under
+  16 px yet 53% are under 32 px, so the tiny share alone scored it a perfect 100; the under-32 px
+  share is now shown beside it. Changing the 16 px threshold itself was rejected.
+- **Tests:** engine 91 passed (4 symlink tests skipped locally, 1 slow test deselected); viewer 47
+  passed; ruff, ESLint, tsc, `uv build` and the Vite build clean. 10,000 generated images scanned in
+  241 s (target: under 600 s).
+- **Results:** cricket ball 99.8 overall, COCO val2017 96.8 (see README). Two datasets and one run
+  each: not enough to tune weights or thresholds.
+- **Limits:** The first Pages deploy only happens after merge and is unverified. No laptop timing.
+  Weights, the 16 px and blur thresholds and the score bands are still untuned.
+- **Next:** MVP done per PRD once the live site is confirmed. Post-MVP: near-duplicate detection,
+  train/val leakage, orphan labels, tuning on more datasets.
