@@ -1,4 +1,5 @@
 import { scoreBand } from "../lib/band";
+import Histogram from "./Histogram";
 import IssueTable from "./IssueTable";
 import type { Report } from "../schema";
 
@@ -52,6 +53,9 @@ export default function ReportSummary({ report, onReset }: Props) {
           );
         })}
       </ul>
+
+      <h2 className="mt-10 text-xl font-semibold">Box sizes</h2>
+      <Histogram stats={report.stats} />
 
       <h2 className="mt-10 text-xl font-semibold">Problems</h2>
       <IssueTable issues={report.issues} issueCounts={report.issue_counts} />
