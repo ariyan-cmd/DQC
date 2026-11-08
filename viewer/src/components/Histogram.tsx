@@ -29,7 +29,10 @@ export default function Histogram({ stats }: Props) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-sm text-gray-700">Tiny boxes: {pct(stats.tiny_box_ratio)} of {total}.</p>
+      <p className="mt-3 text-sm text-gray-700">Tiny boxes: {pct(stats.tiny_box_ratio)} of {total} (this sets the score).</p>
+      <p className="text-sm text-gray-700">
+        Small boxes (COCO: under 32 px): {pct(stats.small_box_ratio)}, shown but not scored.
+      </p>
       {measured !== undefined && blurry !== undefined && (
         <p className="text-sm text-gray-700">
           Blur: {measured} boxes measured, {pct(blurry)} look blurry (a hint, not scored).

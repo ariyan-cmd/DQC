@@ -39,7 +39,8 @@ def test_histogram_and_tiny_ratio(tmp_path: Path) -> None:
     )
     stats = run(tmp_path, labels).stats()
     assert stats.box_size_histogram == {"<8": 1, "8-16": 1, "16-32": 1, "32-96": 1, "96+": 1}
-    assert stats.tiny_box_ratio == 2 / 5
+    assert stats.tiny_box_ratio == 2 / 5  # 5 and 10 px are under 16 px
+    assert stats.small_box_ratio == 3 / 5  # 5, 10 and 20 px are under 32 px
 
 
 def test_size_uses_pixels_not_fractions(tmp_path: Path) -> None:

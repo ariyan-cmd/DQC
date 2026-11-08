@@ -140,6 +140,11 @@
           "title": "Tiny Box Ratio",
           "type": "number"
         },
+        "small_box_ratio": {
+          "default": 0.0,
+          "title": "Small Box Ratio",
+          "type": "number"
+        },
         "blur_summary": {
           "additionalProperties": {
             "type": "number"

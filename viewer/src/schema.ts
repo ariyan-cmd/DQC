@@ -39,6 +39,7 @@ export const ReportSchema = z.object({
   stats: z.object({
     box_size_histogram: z.record(z.string(), Count),
     tiny_box_ratio: z.number().min(0).max(1),
+    small_box_ratio: z.number().min(0).max(1),
     blur_summary: z.record(z.string(), z.number()),
   }),
 });
