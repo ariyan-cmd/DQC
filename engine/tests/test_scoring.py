@@ -62,12 +62,14 @@ def test_small_object_score_is_one_minus_tiny_ratio_and_blur_is_not_scored() -> 
     stats = Stats(
         box_size_histogram={"<8": 25, "96+": 75},
         tiny_box_ratio=0.25,
+        small_box_ratio=0.5,
         blur_summary={"boxes_measured": 10.0, "median_sharpness": 50.0, "blurry_ratio": 0.9},
     )
     section = score_sections([], stats, 100)[3]
-    assert section.score == 75
+    assert section.score == 75  # the small (under 32 px) share does not change the score
     assert section.reason == (
-        "25% of 100 boxes are under 16 px; 90% of measured boxes look blurry (not scored)"
+        "25% of 100 boxes are under 16 px (50% are under 32 px); "
+        "90% of measured boxes look blurry (not scored)"
     )
 
 

@@ -50,7 +50,8 @@ def test_scan_finds_exactly_the_planted_small_object_problems(tmp_path: Path) ->
     # boxes: a.png 12.8 px (base fixture), small 5 px, soft 100 px, mid 20 px
     stats = report.stats
     assert stats.box_size_histogram == {"<8": 1, "8-16": 1, "16-32": 1, "32-96": 0, "96+": 1}
-    assert stats.tiny_box_ratio == 0.5
+    assert stats.tiny_box_ratio == 0.5  # 12.8 and 5 px are under 16
+    assert stats.small_box_ratio == 0.75  # 12.8, 5 and 20 px are under 32; only 100 px is not
     # measured: a.png, soft, mid (small is under 8 px); only soft is blurry
     assert stats.blur_summary["boxes_measured"] == 3
     assert stats.blur_summary["blurry_ratio"] == 1 / 3

@@ -10,7 +10,10 @@ from dsc.checks.labels import Box, parse_label_file
 from dsc.loader import Sample, relpath
 from dsc.models import Issue, Stats
 
-TINY_PX = 16  # placeholder: a box whose typical side is under this is "tiny"
+TINY_PX = 16  # placeholder: a box whose typical side is under this is "tiny"; drives the score
+# COCO's "small" cut-off. Reported next to the tiny share but never scored: a cricket-ball set had
+# no tiny boxes yet 53% under this, so the tiny share alone hides how small its objects are.
+SMALL_PX = 32
 # Upper edge of each bucket in pixels; 32 and 96 are the COCO small/medium/large cut points.
 BUCKET_EDGES = [(8, "<8"), (16, "8-16"), (32, "16-32"), (96, "32-96")]
 LAST_BUCKET = "96+"
@@ -42,6 +45,7 @@ class SmallObjectCheck:
         self.histogram = dict.fromkeys([label for _, label in BUCKET_EDGES] + [LAST_BUCKET], 0)
         self.total = 0
         self.tiny = 0
+        self.small = 0
         self.scores: list[float] = []  # one sharpness score per measured box
 
     def _valid_boxes(self, label: Path) -> list[Box]:
@@ -82,6 +86,7 @@ class SmallObjectCheck:
                     self.histogram[bucket(size)] += 1
                     self.total += 1
                     self.tiny += size < TINY_PX
+                    self.small += size < SMALL_PX
                 scores = self._sharpness(img, boxes)
         except Exception:  # unreadable images are reported by ImageCheck
             return []
@@ -103,7 +108,8 @@ class SmallObjectCheck:
         return []
 
     def stats(self) -> Stats:
-        ratio = self.tiny / self.total if self.total else 0.0
+        tiny = self.tiny / self.total if self.total else 0.0
+        small = self.small / self.total if self.total else 0.0
         blur: dict[str, float] = {}
         if self.scores:
             blur = {
@@ -111,4 +117,9 @@ class SmallObjectCheck:
                 "median_sharpness": statistics.median(self.scores),
                 "blurry_ratio": sum(s < BLUR_THRESHOLD for s in self.scores) / len(self.scores),
             }
-        return Stats(box_size_histogram=self.histogram, tiny_box_ratio=ratio, blur_summary=blur)
+        return Stats(
+            box_size_histogram=self.histogram,
+            tiny_box_ratio=tiny,
+            small_box_ratio=small,
+            blur_summary=blur,
+        )

@@ -1,6 +1,6 @@
 from collections import Counter
 
-from dsc.checks.small_objects import TINY_PX
+from dsc.checks.small_objects import SMALL_PX, TINY_PX
 from dsc.models import Issue, Score, Section, Stats
 
 # The four report sections, in display order, with their share of the overall score.
@@ -60,7 +60,10 @@ def _small_objects(name: str, issues: list[Issue], stats: Stats) -> Section:
     boxes = sum(stats.box_size_histogram.values())
     if boxes == 0:
         return Section(name=name, score=0.0, reason="no valid boxes found", issue_count=0)
-    reason = f"{stats.tiny_box_ratio:.0%} of {boxes} boxes are under {TINY_PX} px"
+    reason = (
+        f"{stats.tiny_box_ratio:.0%} of {boxes} boxes are under {TINY_PX} px "
+        f"({stats.small_box_ratio:.0%} are under {SMALL_PX} px)"
+    )
     blur = stats.blur_summary
     if blur:
         reason += f"; {blur['blurry_ratio']:.0%} of measured boxes look blurry (not scored)"

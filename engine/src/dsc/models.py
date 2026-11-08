@@ -36,7 +36,8 @@ class Section(BaseModel):
 
 class Stats(BaseModel):
     box_size_histogram: dict[str, int] = Field(default_factory=dict)
-    tiny_box_ratio: float = 0.0
+    tiny_box_ratio: float = 0.0  # share of boxes under 16 px; this one drives the score
+    small_box_ratio: float = 0.0  # share under 32 px (COCO "small"); shown, never scored
     blur_summary: dict[str, float] = Field(default_factory=dict)
 
 
