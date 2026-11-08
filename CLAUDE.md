@@ -6,7 +6,7 @@ The owner is a student learning as they build: explain new concepts in 1-2 lines
 
 ## Stack
 - engine/: Python 3.13, Typer, Pillow, NumPy (no OpenCV: blur is a few lines of NumPy), PyYAML, Pydantic v2, uv, pytest, ruff
-- viewer/: Vite, React, TypeScript, Tailwind, Recharts, Zod, Vitest
+- viewer/: Vite, React, TypeScript, Tailwind, Zod, Vitest (no Recharts: the histogram is five Tailwind bars)
 - No backend, database, or auth. Hosting: GitHub Pages. CI: GitHub Actions.
 
 ## Structure
