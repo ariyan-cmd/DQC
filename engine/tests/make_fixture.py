@@ -66,6 +66,27 @@ def plant_small_object_problems(root: Path) -> None:
     (labels / "mid.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")  # 20 px
 
 
+def make_big_dataset(root: Path, count: int) -> Path:
+    """Flat dataset of `count` unique 640x480 JPEGs with three boxes each, for timing runs."""
+    images, labels = root / "images", root / "labels"
+    images.mkdir(parents=True)
+    labels.mkdir()
+    for i in range(count):
+        rng = np.random.default_rng(i)
+        blobs = Image.fromarray(rng.integers(0, 256, (24, 32, 3), dtype=np.uint8))
+        smooth = np.asarray(blobs.resize((640, 480), Image.Resampling.BICUBIC), dtype=np.int16)
+        # fine noise on top so decoding costs about what a real photo does
+        noisy = np.clip(smooth + rng.integers(-20, 20, smooth.shape), 0, 255).astype(np.uint8)
+        Image.fromarray(noisy).save(images / f"img{i:05d}.jpg", quality=85)
+        boxes = [
+            f"{n % 2} {0.2 + 0.3 * n:.2f} 0.5 {0.02 * (n + 1):.2f} {0.03 * (n + 1):.2f}"
+            for n in range(3)
+        ]
+        (labels / f"img{i:05d}.txt").write_text("\n".join(boxes) + "\n", encoding="utf-8")
+    (root / "data.yaml").write_text(DATA_YAML, encoding="utf-8")
+    return root
+
+
 def make_dataset(root: Path, layout: str, data_yaml: str | None = DATA_YAML) -> Path:
     """Create a dataset in `root` using one of LAYOUTS and return `root`."""
     if layout == "images_labels":
