@@ -1,4 +1,5 @@
 import { scoreBand } from "../lib/band";
+import IssueTable from "./IssueTable";
 import type { Report } from "../schema";
 
 type Props = {
@@ -12,7 +13,7 @@ export default function ReportSummary({ report, onReset }: Props) {
   const band = scoreBand(score.overall);
 
   return (
-    <main className="mx-auto max-w-3xl p-8">
+    <main className="mx-auto max-w-4xl p-8">
       <button
         type="button"
         onClick={onReset}
@@ -51,6 +52,9 @@ export default function ReportSummary({ report, onReset }: Props) {
           );
         })}
       </ul>
+
+      <h2 className="mt-10 text-xl font-semibold">Problems</h2>
+      <IssueTable issues={report.issues} issueCounts={report.issue_counts} />
     </main>
   );
 }
