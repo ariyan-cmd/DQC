@@ -132,3 +132,21 @@ One entry per finished slice, newest last.
   at phone width.
 - **Next:** Slice 7, `feat/viewer-issues`: filterable issue table, histogram, friendlier errors,
   plain-text rendering test.
+
+### Slice 7: Viewer details (2026-11-08)
+- **What:** The summary screen gets a filterable problems table (severity, type, file search;
+  errors first; a notice with the true total when the report was capped), a box-size histogram
+  drawn with Tailwind bars plus tiny-box and blur numbers, and load errors that carry a next-step
+  hint. The file limit dropped from 20 MB to 5 MB. A plain-text rendering guard was added.
+- **Why:** The PRD's problem list and histogram, and the rule that report.json is untrusted.
+- **What I learned:** Keeping filtering in a pure function makes it testable without rendering.
+  `Array.sort` is stable, so scan order survives within a severity. A `<table>` with a caption and
+  header cells, labelled controls and an `aria-live` count make the table usable with a screen
+  reader. Error hints are fixed strings so nothing from the untrusted file is echoed. A guard test
+  is only trustworthy once it has been seen failing, so I planted a forbidden string to check it.
+- **Tests:** 45 viewer tests passed; ESLint, tsc and the Vite build clean. Checked in a real
+  browser at desktop and 375 px width (no horizontal page scroll). Engine unchanged.
+- **Limits:** No pagination (the engine cap keeps it near 1,400 rows). Not tried with a screen
+  reader or a real large report. Histogram is plain bars, not Recharts (CLAUDE.md stack updated).
+- **Next:** Slice 8, `feat/deploy`: GitHub Pages deploy (Vite base path), README with the
+  Roboflow-vs-COCO comparison, 10k-image timing test.
