@@ -1,15 +1,15 @@
 import { useState } from "react";
 import Landing from "./components/Landing";
 import ReportSummary from "./components/ReportSummary";
-import { parseReport, readReportFile, type LoadResult } from "./lib/loadReport";
+import { parseReport, readReportFile, type LoadFailure, type LoadResult } from "./lib/loadReport";
 import type { Report } from "./schema";
 
 export default function App() {
   const [report, setReport] = useState<Report | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<LoadFailure | null>(null);
 
   const show = (result: LoadResult) => {
-    setError(result.ok ? null : result.error);
+    setError(result.ok ? null : result);
     if (result.ok) setReport(result.report);
   };
 
@@ -19,7 +19,11 @@ export default function App() {
       if (!response.ok) throw new Error("sample not found");
       show(parseReport(await response.text()));
     } catch {
-      setError("Could not load the sample report.");
+      setError({
+        ok: false,
+        error: "Could not load the sample report.",
+        hint: "Check your connection and try again, or choose a report.json file.",
+      });
     }
   };
 

@@ -1,7 +1,8 @@
 import { useState, type DragEvent } from "react";
+import type { LoadFailure } from "../lib/loadReport";
 
 type Props = {
-  error: string | null;
+  error: LoadFailure | null;
   onSample: () => void;
   onFile: (file: File) => void;
 };
@@ -62,9 +63,10 @@ export default function Landing({ error, onSample, onFile }: Props) {
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 rounded bg-red-50 p-3 text-red-800">
-          {error}
-        </p>
+        <div role="alert" className="mt-4 rounded bg-red-50 p-3 text-red-800">
+          <p className="font-medium">{error.error}</p>
+          <p>{error.hint}</p>
+        </div>
       )}
 
       <h2 className="mt-8 text-lg font-semibold">Make your own report</h2>

@@ -11,7 +11,9 @@ describe("parseReport", () => {
   });
 
   test("explains invalid JSON", () => {
-    expect(parseReport("{nope")).toEqual({ ok: false, error: "This file is not valid JSON." });
+    const result = parseReport("{nope");
+    expect(!result.ok && result.error).toBe("This file is not valid JSON.");
+    expect(!result.ok && result.hint).toContain("dsc check");
   });
 
   test("explains JSON that is not a report", () => {
@@ -36,6 +38,14 @@ describe("readReportFile", () => {
     const file = new File(["{}"], "big.json");
     Object.defineProperty(file, "size", { value: MAX_REPORT_BYTES + 1 });
     const result = await readReportFile(file);
-    expect(!result.ok && result.error).toContain("too large");
+    expect(!result.ok && result.error).toContain("(over 5 MB)");
+    expect(!result.ok && result.hint).toContain("not the dataset");
+  });
+
+  test("a file that cannot be read explains itself", async () => {
+    const file = new File(["{}"], "r.json");
+    file.text = () => Promise.reject(new Error("disk"));
+    const result = await readReportFile(file);
+    expect(!result.ok && result.error).toBe("Could not read that file.");
   });
 });

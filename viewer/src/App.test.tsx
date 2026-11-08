@@ -47,13 +47,17 @@ test("a failed sample download shows a friendly error", async () => {
   stubFetch(new Error("offline"));
   render(<App />);
   fireEvent.click(screen.getByRole("button", { name: "Load sample report" }));
-  expect((await screen.findByRole("alert")).textContent).toBe("Could not load the sample report.");
+  const alert = await screen.findByRole("alert");
+  expect(alert.textContent).toContain("Could not load the sample report.");
+  expect(alert.textContent).toContain("Check your connection");
 });
 
 test("a file that is not a report shows an error and stays on the landing screen", async () => {
   render(<App />);
   chooseFile('{"hello": 1}');
-  expect((await screen.findByRole("alert")).textContent).toContain("does not look like");
+  const alert = await screen.findByRole("alert");
+  expect(alert.textContent).toContain("does not look like");
+  expect(alert.textContent).toContain("dsc check"); // the hint tells the user what to do next
   expect(screen.getByRole("button", { name: "Load sample report" })).toBeTruthy();
 });
 
