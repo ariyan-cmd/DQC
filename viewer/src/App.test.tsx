@@ -30,6 +30,19 @@ test("landing screen offers the sample, a file chooser and the CLI snippet", () 
   expect(screen.getByText(/uv run dsc check/)).toBeTruthy();
 });
 
+test("loading the sample shows the overall score and a card per section, and can go back", async () => {
+  stubFetch({ ok: true, text: () => Promise.resolve(sampleText) });
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Load sample report" }));
+  expect(await screen.findByText(String(sample.score.overall))).toBeTruthy();
+  for (const section of sample.sections) {
+    expect(screen.getByRole("heading", { name: section.name })).toBeTruthy();
+    expect(screen.getByText(section.reason)).toBeTruthy();
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Load another report" }));
+  expect(screen.getByRole("button", { name: "Load sample report" })).toBeTruthy();
+});
+
 test("a failed sample download shows a friendly error", async () => {
   stubFetch(new Error("offline"));
   render(<App />);

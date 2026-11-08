@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Landing from "./components/Landing";
+import ReportSummary from "./components/ReportSummary";
 import { parseReport, readReportFile, type LoadResult } from "./lib/loadReport";
 import type { Report } from "./schema";
 
@@ -22,8 +23,7 @@ export default function App() {
     }
   };
 
-  // Summary screen arrives in the next commit.
-  if (report) return <main className="p-8">{report.dataset.name}</main>;
+  if (report) return <ReportSummary report={report} onReset={() => setReport(null)} />;
   return (
     <Landing
       error={error}
