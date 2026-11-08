@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import sample from "../public/sample-report.json";
+import viteConfig from "../vite.config";
 import App from "./App";
 
 const sampleText = JSON.stringify(sample);
@@ -41,6 +42,19 @@ test("loading the sample shows the overall score and a card per section, and can
   }
   fireEvent.click(screen.getByRole("button", { name: "Load another report" }));
   expect(screen.getByRole("button", { name: "Load sample report" })).toBeTruthy();
+});
+
+test("the sample is fetched relative to the app's base path", async () => {
+  stubFetch({ ok: true, text: () => Promise.resolve(sampleText) });
+  render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "Load sample report" }));
+  await screen.findByText(String(sample.score.overall));
+  expect(fetch).toHaveBeenCalledWith(`${import.meta.env.BASE_URL}sample-report.json`);
+});
+
+test("the build is configured for the GitHub Pages path", () => {
+  // Vitest overrides BASE_URL, so check the config itself; `npm run build` uses this value.
+  expect(viteConfig.base).toBe("/DQC/");
 });
 
 test("a failed sample download shows a friendly error", async () => {
