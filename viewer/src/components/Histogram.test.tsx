@@ -29,11 +29,13 @@ test("shows the tiny-box percentage and the blur summary", () => {
         ...stats,
         box_size_histogram: { "<8": 1, "96+": 3 },
         tiny_box_ratio: 0.25,
+        small_box_ratio: 0.5,
         blur_summary: { boxes_measured: 4, blurry_ratio: 0.5 },
       }}
     />,
   );
-  expect(screen.getByText("Tiny boxes: 25% of 4.")).toBeTruthy();
+  expect(screen.getByText("Tiny boxes: 25% of 4 (this sets the score).")).toBeTruthy();
+  expect(screen.getByText("Small boxes (COCO: under 32 px): 50%, shown but not scored.")).toBeTruthy();
   expect(screen.getByText("Blur: 4 boxes measured, 50% look blurry (a hint, not scored).")).toBeTruthy();
 });
 

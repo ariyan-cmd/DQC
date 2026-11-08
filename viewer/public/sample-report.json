@@ -41,7 +41,7 @@
     {
       "name": "Small-object quality",
       "score": 33.3,
-      "reason": "67% of 6 boxes are under 16 px; 20% of measured boxes look blurry (not scored)",
+      "reason": "67% of 6 boxes are under 16 px (83% are under 32 px); 20% of measured boxes look blurry (not scored)",
       "issue_count": 1
     }
   ],
@@ -159,6 +159,7 @@
       "96+": 1
     },
     "tiny_box_ratio": 0.6666666666666666,
+    "small_box_ratio": 0.8333333333333334,
     "blur_summary": {
       "boxes_measured": 5.0,
       "median_sharpness": 47608.890625,
