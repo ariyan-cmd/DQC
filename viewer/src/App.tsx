@@ -1,7 +1,34 @@
+import { useState } from "react";
+import Landing from "./components/Landing";
+import ReportSummary from "./components/ReportSummary";
+import { parseReport, readReportFile, type LoadResult } from "./lib/loadReport";
+import type { Report } from "./schema";
+
 export default function App() {
+  const [report, setReport] = useState<Report | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const show = (result: LoadResult) => {
+    setError(result.ok ? null : result.error);
+    if (result.ok) setReport(result.report);
+  };
+
+  const loadSample = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.BASE_URL}sample-report.json`);
+      if (!response.ok) throw new Error("sample not found");
+      show(parseReport(await response.text()));
+    } catch {
+      setError("Could not load the sample report.");
+    }
+  };
+
+  if (report) return <ReportSummary report={report} onReset={() => setReport(null)} />;
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-bold">Dataset Readiness Checker</h1>
-    </main>
+    <Landing
+      error={error}
+      onSample={loadSample}
+      onFile={async (file) => show(await readReportFile(file))}
+    />
   );
 }

@@ -111,3 +111,24 @@ One entry per finished slice, newest last.
   the end of the scan. Score is not validated against model accuracy.
 - **Next:** Slice 6, `feat/viewer-core`: Vite/React shell, sample report, drag-and-drop, Zod
   validation, score and section cards.
+
+### Slice 6: Viewer core (2026-11-08)
+- **What:** The viewer loads a report from "Load sample report", drag-and-drop or a file chooser,
+  validates it with Zod, and shows the overall score (Good / Needs work / Poor) plus a card per
+  section with score, reason and issue count. Added `viewer/public/sample-report.json`, generated
+  by the engine from the planted fixture. Zod 4.6.7 added.
+- **Why:** Viewing the report is the product's second half; the PRD requires a stranger to open
+  the site, click the sample and understand it.
+- **What I learned:** TypeScript types vanish at runtime, so an untrusted report.json needs a
+  runtime check (Zod), and `z.infer` keeps the type and the check in sync. React renders `{value}`
+  as plain text, so no `dangerouslySetInnerHTML` is needed. `preventDefault` on dragover is what
+  allows a drop. A visually hidden file input inside a label gives a keyboard and screen-reader
+  path. Vitest has globals off, so testing-library needs an explicit `cleanup`. A test comparing
+  field names with `schema/report.schema.json` keeps the engine and viewer contract honest.
+- **Tests:** 25 viewer tests passed; ESLint, tsc and the Vite build clean. Also checked the sample
+  report in a real browser. Engine unchanged.
+- **Limits:** The sample is the 13-image fixture, not a real dataset. Score bands (80 / 50) and the
+  20 MB limit are placeholders. No issue table or histogram yet. Not tried with a screen reader or
+  at phone width.
+- **Next:** Slice 7, `feat/viewer-issues`: filterable issue table, histogram, friendlier errors,
+  plain-text rendering test.
