@@ -175,3 +175,13 @@ One entry per finished slice, newest last.
   Weights, the 16 px and blur thresholds and the score bands are still untuned.
 - **Next:** MVP done per PRD once the live site is confirmed. Post-MVP: near-duplicate detection,
   train/val leakage, orphan labels, tuning on more datasets.
+
+## Report lands in the dataset folder
+- **What:** `dsc check <dataset>` now writes `<dataset>/report.json` by default; `-o` still overrides.
+  An unwritable destination exits 1 with a hint to use `-o` instead of a traceback.
+- **Why:** Users had to hunt for the report in whatever folder they ran the command from.
+- **What I learned:** Writing happens after the scan, so the report is never scanned as part of the
+  dataset. It adds one file to the dataset folder, which bends the "dataset is read-only" rule
+  (nothing existing is modified or deleted); a read-only dataset needs `-o`.
+- **Tests:** engine 93 passed, 4 skipped; ruff clean.
+- **Next:** Decide whether a re-run should overwrite the old report (it does today).

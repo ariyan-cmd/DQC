@@ -31,6 +31,22 @@ def test_report_has_no_absolute_paths(tmp_path: Path) -> None:
     assert json.loads(out.read_text(encoding="utf-8"))["issues"][0]["file"] == "data.yaml"
 
 
+def test_default_output_is_report_json_inside_dataset(tmp_path: Path) -> None:
+    dataset = make_dataset(tmp_path / "ds", "split_first")
+    result = CliRunner().invoke(app, ["check", str(dataset)])
+    assert result.exit_code == 0
+    Report.model_validate_json((dataset / "report.json").read_text(encoding="utf-8"))
+
+
+def test_unwritable_output_exits_1_with_hint(tmp_path: Path) -> None:
+    dataset = make_dataset(tmp_path / "ds", "split_first")
+    result = CliRunner().invoke(
+        app, ["check", str(dataset), "-o", str(tmp_path / "nope" / "r.json")]
+    )
+    assert result.exit_code == 1
+    assert "-o" in result.output
+
+
 def test_check_does_not_modify_dataset(tmp_path: Path) -> None:
     dataset = make_dataset(tmp_path / "ds", "split_first")
     before = sorted((p.relative_to(dataset), p.stat().st_mtime_ns) for p in dataset.rglob("*"))

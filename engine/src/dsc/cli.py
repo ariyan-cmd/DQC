@@ -19,8 +19,11 @@ def main() -> None:
 def check(
     dataset: Annotated[Path, typer.Argument(help="Path to a YOLO-format dataset folder.")],
     output: Annotated[
-        Path, typer.Option("--output", "-o", help="Where to write the report.")
-    ] = Path("report.json"),
+        Path | None,
+        typer.Option(
+            "--output", "-o", help="Where to write the report [default: DATASET/report.json]."
+        ),
+    ] = None,
 ) -> None:
     """Scan DATASET (read-only) and write a report.json."""
     try:
@@ -28,9 +31,18 @@ def check(
     except LayoutError as err:
         typer.echo(f"error: {err}", err=True)
         raise typer.Exit(code=2) from err
-    write_report(report, output)
+    # Next to the data so users can find it; the scan is finished, so it never scans its own output.
+    output = output or dataset / "report.json"
+    try:
+        write_report(report, output)
+    except OSError as err:
+        typer.echo(
+            f"error: cannot write {output} ({err.strerror}); pass -o to choose another path",
+            err=True,
+        )
+        raise typer.Exit(code=1) from err
     info = report.dataset
     typer.echo(
         f"{info.num_images} images, {info.num_labels} labels, "
-        f"score {report.score.overall:g}/100 -> {output.name}"
+        f"score {report.score.overall:g}/100 -> {output}"
     )
